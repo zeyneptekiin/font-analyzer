@@ -1,0 +1,22 @@
+services:
+  api:
+    build:
+      context: ./api
+    container_name: api_service
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./api/data/uploads:/app/data/uploads
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+
+  web:
+    build:
+      context: ./web
+    container_name: web_service
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://api:8000
+    depends_on:
+      - api
