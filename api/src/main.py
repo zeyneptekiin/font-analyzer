@@ -1,28 +1,60 @@
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-import openai
-from config import OPENAI_API_KEY
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import PromptTemplate
+from PIL import Image
+import pytesseract
+import os
+from dotenv import load_dotenv
+from io import BytesIO
+
+load_dotenv()
+openai_api_key = os.getenv("OPENAI_API_KEY")
 
 app = FastAPI()
 
-openai.api_key = OPENAI_API_KEY
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-PROMPT = """
-Identify all text elements in the image and determine the font type used for each.
-Label each text block as text_1, text_2, etc., and assign the corresponding font name as font1, font2, in JSON format.
-For example, output as { 'text_1': 'font1', 'text_2': 'font2' }.
+llm = ChatOpenAI(model_name="gpt-3.5-turbo", openai_api_key=openai_api_key)
+
+prompt_template = """
+Analyze the following text image and try to identify the most likely font type. Focus specifically on details such as:
+
+- Character thickness (thin, regular, bold)
+- Letter shape (rounded vs. angular)
+- Spacing between letters
+- Serif presence (serif vs. sans-serif)
+
+Provide the font name in JSON format with a confidence score, if possible. Answer format: {{ "font": "font_name", "confidence": "high/medium/low" }}.
+
+Text Content:
+{text_content}
 """
+prompt = PromptTemplate(input_variables=["text_content"], template=prompt_template)
+
+chain = prompt | llm
 
 @app.post("/api/analyze-image")
 async def analyze_image(file: UploadFile = File(...)):
-    image_data = await file.read()
+    try:
+        image = Image.open(BytesIO(await file.read()))
+        extracted_text = pytesseract.image_to_string(image)
 
-    response = openai.Image.create(
-        file=image_data,
-        prompt=PROMPT,
-        n=1,
-        size="1024x1024",
-        response_format="json"
-    )
+        if not extracted_text.strip():
+            raise HTTPException(status_code=400, detail="No text found in the image.")
 
-    return JSONResponse(content=response)
+        result = chain.invoke({"text_content": extracted_text})
+
+        response_content = result.content if hasattr(result, 'content') else str(result)
+        return JSONResponse(content={"result": response_content})
+
+    except Exception as e:
+        print("Error:", e)
+        raise HTTPException(status_code=500, detail="Internal Server Error")
