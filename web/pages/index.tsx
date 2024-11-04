@@ -27,12 +27,20 @@ export default function Home() {
   };
 
   return (
-      <div>
-        <h1>Upload an Image</h1>
-        <form onSubmit={handleSubmit}>
-          <input type="file" onChange={handleFileChange} accept="image/*" />
-          <button type="submit">Analyze Image</button>
-        </form>
+      <div className="flex flex-col justify-center text-center">
+        <h1 className="text-center mt-40 text-4xl">Welcome to Font Analyzer!</h1>
+        <div className="text-left w-[500px] mt-10 py-20 border-2 rounded-2xl hover:border-gray-600 pl-20 mx-auto">
+          <h2>Upload an Image</h2>
+          <form onSubmit={handleSubmit} className="mt-4">
+            <input
+                type="file"
+                onChange={handleFileChange}
+                accept="image/*"
+            />
+            <button type="submit" className="block mt-4" >Analyze Image</button>
+          </form>
+        </div>
       </div>
+
   );
 }
