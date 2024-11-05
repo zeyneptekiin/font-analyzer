@@ -22,14 +22,17 @@ export default function Result() {
     }, [data]);
 
     return (
-        <div>
-            <h1>Analysis Results</h1>
-            {result ? (
-                <pre>{JSON.stringify(result, null, 2)}</pre>
-            ) : (
-                <p>Loading results...</p>
-            )}
-            <button onClick={() => router.push('/')}>Back to Home</button>
+        <div className="flex flex-col justify-center text-center">
+            <h1 className="text-center mt-40 text-4xl">Analysis Results</h1>
+            <div className="text-left w-[500px] mt-10 py-20 border-2 rounded-2xl hover:border-gray-600 pl-20 mx-auto">
+                {result ? (
+                    <pre className="mt-4">{JSON.stringify(result, null, 2)}</pre>
+                ) : (
+                    <p className="mt-4">Loading results...</p>
+                )}
+            </div>
+            <button className="text-xl mt-4 underline underline-offset-4" onClick={() => router.push('/')}>Back to Home</button>
         </div>
-    );
+    )
+        ;
 }

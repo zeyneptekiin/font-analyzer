@@ -7,15 +7,15 @@ export async function analyzeImage(file: File) {
   formData.append("file", file);
 
   try {
-    const response = await axios.post(`${API_URL}/api/analyze-image`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-
+    const response = await axios.post(`${API_URL}/api/analyze-image`, formData);
     return response.data;
   } catch (error) {
-    console.error("Failed to process image", error);
-    throw new Error("Failed to process image");
+    if (axios.isAxiosError(error)) {
+      console.error("Axios error:", error.response?.data || error.message);
+      throw new Error(error.response?.data?.detail || "Failed to process image");
+    } else {
+      console.error("Unexpected error:", error);
+      throw new Error("Unexpected error occurred while processing the image");
+    }
   }
 }
