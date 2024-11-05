@@ -1,9 +1,9 @@
 fastapi
-uvicorn
 pytesseract
-Pillow
-python-dotenv
-langchain
 langchain-openai
-langchain-core
+Pillow
+opencv-python-headless
+python-dotenv
+uvicorn
+langchain
 python-multipart
