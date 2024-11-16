@@ -7,3 +7,5 @@ python-dotenv
 uvicorn
 langchain
 python-multipart
+fontTools
+numpy
