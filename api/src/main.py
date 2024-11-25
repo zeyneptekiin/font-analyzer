@@ -8,9 +8,8 @@ from PIL import Image
 import os
 from dotenv import load_dotenv
 from io import BytesIO
-import cv2
 import numpy as np
-from .helper_analyze_image import (preprocess_image, extract_text, calculate_letter_spacing)
+from .helper_analyze_image import (extract_text, extract_font_features)
 
 load_dotenv()
 openai_api_key = os.getenv("OPENAI_API_KEY")
@@ -45,45 +44,6 @@ Extracted Text (if any):
 {text}
 """
 prompt = PromptTemplate(input_variables=["image_data", "text"], template=prompt_template)
-
-
-def extract_font_features(image):
-    binary = preprocess_image(image)
-    contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    thicknesses = []
-    heights = []
-    for cnt in contours:
-        x, y, w, h = cv2.boundingRect(cnt)
-        thicknesses.append(h)
-        heights.append(h)
-
-    if thicknesses:
-        avg_thickness = np.mean(thicknesses)
-        if avg_thickness < 10:
-            character_thickness = "thin"
-        elif avg_thickness < 20:
-            character_thickness = "regular"
-        else:
-            character_thickness = "bold"
-    else:
-        character_thickness = "unknown"
-
-    if heights:
-        avg_height = np.mean(heights)
-        if avg_height < 15:
-            x_height = "low"
-        elif avg_height < 25:
-            x_height = "medium"
-        else:
-            x_height = "high"
-    else:
-        x_height = "unknown"
-
-    spacing_between_letters = calculate_letter_spacing(contours)
-    serif_presence = "sans-serif"
-    letter_shape = "rounded"
-
-    return character_thickness, letter_shape, spacing_between_letters, serif_presence, x_height
 
 
 @app.post("/api/analyze-image")
